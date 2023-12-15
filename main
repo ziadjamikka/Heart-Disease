@@ -1,0 +1,77 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn import preprocessing
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from colorama import Fore
+from sklearn.metrics import mean_absolute_error
+
+
+def load_data():
+    return pd.read_csv(r"https://storage.googleapis.com/kagglesdsdata/datasets/216167/477177/heart.csv?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=gcp-kaggle-com%40kaggle-161607.iam.gserviceaccount.com%2F20231214%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20231214T204214Z&X-Goog-Expires=259200&X-Goog-SignedHeaders=host&X-Goog-Signature=734841812a5629881e94cc94c32c2991634a3353f6d24c8b42f3a10885c20650165a407c587b4deb0570401f60ed2dab023aa7fede06034edf93d2aec89922d722e614bea59b43cae1f917acd7c58c3e4b99fde1b42e8e2d56f2bef81c73c587bc2fcb49d1841a8c9573b63a840729bf1be904f10e24f1a255554066a36e9757242ee2ea308e056d20c84549543832a3be38c0b822bb4878e34be7aab9bbc0191e09ec87a62110b54c3a54426d99353cadad2c2d1103c5abeb5fb19b28121efa15a4af793613fc44241aa108a05f866021522e754dcbb3e4eb6cd88b3a9e4019b4a8da89f072939ea2f36e38647219dc82b4036031e07de89146c1854715a462")
+
+def show_data_info(data):
+    print(Fore.GREEN + str(data) + Fore.RESET)
+    print(Fore.GREEN + str(data.shape) + Fore.RESET)
+    print(Fore.GREEN + str(data.head(0)) + Fore.RESET)
+    print(Fore.GREEN + str(data.dtypes) + Fore.RESET)
+    print(Fore.GREEN + str(data.info()) + Fore.RESET)
+
+
+def scale_data(data):
+    scaler = preprocessing.MinMaxScaler()
+    scaled_data = scaler.fit_transform(data) 
+    return pd.DataFrame(scaled_data, columns=data.columns)
+
+def plot_correlation(data):
+    r = data.corr()
+    sns.heatmap(data.corr(), cbar=True)
+    plt.show()
+
+def mean_absolute_error_metrics(y_true, y_pred):
+    mae = mean_absolute_error(y_true, y_pred)
+    print(Fore.RED + "Mean Absolute Error:", str(mae) + Fore.RESET)
+
+def train_and_evaluate_models(X, Y, train_size=0.7):
+    x_train, x_test, y_train, y_test = train_test_split(X, Y, train_size=train_size)
+    
+    model1 = LogisticRegression()
+    model1.fit(x_train, y_train)
+    print(Fore.BLUE + "Accuracy (train) in LogisticRegression:", str(model1.score(x_train, y_train)) + Fore.RESET)
+    print(Fore.BLUE + "Accuracy (test) in LogisticRegression:", str(model1.score(x_test, y_test)) + Fore.RESET)
+
+    model2 = RandomForestClassifier()
+    model2.fit(x_train, y_train)
+    print(Fore.BLUE + "Accuracy (train) in RandomForestClassifier:", str(model2.score(x_train, y_train)) + Fore.RESET)
+    print(Fore.BLUE + "Accuracy (test) in RandomForestClassifier:", str(model2.score(x_test, y_test)) + Fore.RESET)
+
+    y_pred = model2.predict(x_test)
+    print(y_pred)
+
+    mean_absolute_error_metrics(y_test, y_pred)
+
+def main():
+    data = load_data()
+    show_data_info(data)
+
+    scaled_data = scale_data(data)
+    plot_correlation(scaled_data)
+
+    X = scaled_data.iloc[:, :-1].values
+    Y = scaled_data.iloc[:, -1].values
+
+    train_and_evaluate_models(X, Y)
+
+if __name__ == "__main__":
+    main()
+    print(Fore.LIGHTYELLOW_EX + """
+      _           _        _                          _        _               _     _           
+     (_)         | |      | |                        | |      | |             | |   (_)          
+  _____  __ _  __| |   ___| |___  __ _ _   _  ___  __| |   ___| |__  _ __ __ _| |__  _ _ __ ___  
+ |_  / |/ _` |/ _` |  / _ \ / __|/ _` | | | |/ _ \/ _` |  / _ \ '_ \| '__/ _` | '_ \| | '_ ` _ \ 
+  / /| | (_| | (_| | |  __/ \__ \ (_| | |_| |  __/ (_| | |  __/ |_) | | | (_| | | | | | | | | | |
+ /___|_|\__,_|\__,_|  \___|_|___/\__,_|\__, |\___|\__,_|  \___|_.__/|_|  \__,_|_| |_|_|_| |_| |_|
+                                        __/ |                                                    
+                                       |___/                                                     """ + Fore.RESET)
